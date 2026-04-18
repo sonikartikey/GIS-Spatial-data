@@ -43,7 +43,7 @@ export class LinesService {
     ) AS geojson
     FROM poles p
     JOIN lines l
-      ON ST_DWithin(p.geom, l.geom, 0.01)
+      ON ST_DWithin(p.geom::geography, l.geom::geography, 100)
     WHERE l.id = $1;
   `;
 
