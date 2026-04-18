@@ -18,7 +18,7 @@ export class NetworkService {
 
 			const result = await pool.query(
 				`
-        SELECT id, from_node, to_node
+        SELECT id, from_node, to_node, direction
         FROM edges
         WHERE from_node = $1 OR to_node = $1
         `,
@@ -26,15 +26,28 @@ export class NetworkService {
 			);
 
 			for (const edge of result.rows) {
-				visitedEdges.add(edge.id);
+				const { id, from_node, to_node, direction } = edge;
 
-				const nextNode =
-					edge.from_node === currentNode
-						? edge.to_node
-						: edge.from_node;
+				let nextNode = null;
 
-				if (!visitedNodes.has(nextNode)) {
-					queue.push(nextNode);
+				if (direction === 'bidirectional') {
+					nextNode = from_node === currentNode ? to_node : from_node;
+				}
+
+				if (direction === 'forward' && from_node === currentNode) {
+					nextNode = to_node;
+				}
+
+				if (direction === 'backward' && to_node === currentNode) {
+					nextNode = from_node;
+				}
+
+				if (nextNode !== null) {
+					visitedEdges.add(id);
+
+					if (!visitedNodes.has(nextNode)) {
+						queue.push(nextNode);
+					}
 				}
 			}
 		}
